@@ -86,7 +86,7 @@ class PongGame(App):
     def on_mount(self) -> None:
         self.set_interval(1 / 30, self.update)
 
-    def update(self) -> None:
+    async def update(self) -> None:
         court = self.query_one(Court)
         player = self.query_one(Player)
         ball = self.query_one(Ball)
@@ -106,8 +106,18 @@ class PongGame(App):
             ball.dx = -(ball.dx)
 
         # Collide with player
-        if ball.dx < 0 and ball.offset.x <= player.offset.x:
+        if (
+            ball.dx < 0
+            and ball.offset.x <= player.offset.x
+            and ball.offset.y >= player.offset.y
+            and (ball.offset.y + ball.size.height)
+            <= (player.offset.y + player.size.height)
+        ):
             ball.dx = -(ball.dx)
+
+        # Score
+        if ball.offset.x + ball.size.width < 0:
+            await self.recompose()
 
         # Ball movement
         ball.offset += Offset(ball.dx, 0)
