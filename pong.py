@@ -1,4 +1,5 @@
 from rich.segment import Segment
+from textual import events
 from textual.app import App, ComposeResult, RenderResult
 from textual.containers import Container
 from textual.geometry import Offset
@@ -74,6 +75,8 @@ class PongGame(App):
     }
     """
 
+    key: str | None = None
+
     def compose(self) -> ComposeResult:
         with Court():
             yield Player()
@@ -84,9 +87,19 @@ class PongGame(App):
         self.set_interval(1 / 30, self.update)
 
     def update(self) -> None:
+        court = self.query_one(Court)
         player = self.query_one(Player)
         ball = self.query_one(Ball)
         computer = self.query_one(Computer)
+
+        # Player controls
+        if self.key == "up" and player.offset.y > 0:
+            player.offset -= Offset(0, 1)
+        elif (
+            self.key == "down"
+            and (player.offset.y + player.size.height) < court.size.height
+        ):
+            player.offset += Offset(0, 1)
 
         # Collide with computer
         if ball.dx > 0 and ball.offset.x >= computer.offset.x:
@@ -98,6 +111,12 @@ class PongGame(App):
 
         # Ball movement
         ball.offset += Offset(ball.dx, 0)
+
+        # Reset the key
+        self.key = None
+
+    def on_key(self, event: events.Key) -> None:
+        self.key = event.key
 
 
 if __name__ == "__main__":
