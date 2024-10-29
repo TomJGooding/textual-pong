@@ -1,6 +1,7 @@
 from rich.segment import Segment
 from textual.app import App, ComposeResult, RenderResult
 from textual.containers import Container
+from textual.geometry import Offset
 from textual.strip import Strip
 from textual.widget import Widget
 
@@ -43,6 +44,8 @@ class Ball(Widget):
     }
     """
 
+    dx = 1
+
     def render(self) -> RenderResult:
         return ""
 
@@ -76,6 +79,25 @@ class PongGame(App):
             yield Player()
             yield Ball()
             yield Computer()
+
+    def on_mount(self) -> None:
+        self.set_interval(1 / 30, self.update)
+
+    def update(self) -> None:
+        player = self.query_one(Player)
+        ball = self.query_one(Ball)
+        computer = self.query_one(Computer)
+
+        # Collide with computer
+        if ball.dx > 0 and ball.offset.x >= computer.offset.x:
+            ball.dx = -(ball.dx)
+
+        # Collide with player
+        if ball.dx < 0 and ball.offset.x <= player.offset.x:
+            ball.dx = -(ball.dx)
+
+        # Ball movement
+        ball.offset += Offset(ball.dx, 0)
 
 
 if __name__ == "__main__":
