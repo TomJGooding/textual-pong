@@ -75,6 +75,7 @@ class Scoreboard(Container):
         layout: horizontal;
         width: 48;
         height: 1;
+        padding: 0 1;
 
         Static {
             width: 1fr;
@@ -134,10 +135,10 @@ class PongGame(App):
         computer = self.query_one(Computer)
 
         # Player controls
-        if self.key == "up" and player.offset.y > 0:
+        if self.key in ("up", "k") and player.offset.y > 0:
             player.offset -= Offset(0, 1)
         elif (
-            self.key == "down"
+            self.key in ("down", "j")
             and (player.offset.y + player.size.height) < court.size.height
         ):
             player.offset += Offset(0, 1)
