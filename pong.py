@@ -5,6 +5,7 @@ from textual.containers import Container
 from textual.geometry import Offset
 from textual.strip import Strip
 from textual.widget import Widget
+from textual.widgets import Static
 
 
 class Player(Widget):
@@ -57,7 +58,7 @@ class Court(Container):
         layout: horizontal;
         width: 48;
         height: 25;
-        border: inner #C2C3C7;
+        border: wide #C2C3C7;
     }
     """
 
@@ -66,6 +67,42 @@ class Court(Container):
             return Strip.blank(self.size.width)
         segments = [Segment(" " * (self.size.width // 2 - 1)), Segment("┃")]
         return Strip(segments)
+
+
+class Scoreboard(Container):
+    DEFAULT_CSS = """
+    Scoreboard {
+        layout: horizontal;
+        width: 48;
+        height: 1;
+
+        Static {
+            width: 1fr;
+            text-align: center;
+        }
+
+        #player-points {
+            color: #29ADFF;
+        }
+
+        #computer-points {
+            color: #FF004D;
+        }
+    }
+    """
+
+    def __init__(
+        self,
+        player_points: int,
+        computer_points: int,
+    ) -> None:
+        super().__init__()
+        self.player_points = player_points
+        self.computer_points = computer_points
+
+    def compose(self) -> ComposeResult:
+        yield Static(str(self.player_points), id="player-points")
+        yield Static(str(self.computer_points), id="computer-points")
 
 
 class PongGame(App):
@@ -77,7 +114,11 @@ class PongGame(App):
 
     key: str | None = None
 
+    player_points = 0
+    computer_points = 0
+
     def compose(self) -> ComposeResult:
+        yield Scoreboard(self.player_points, self.computer_points)
         with Court():
             yield Player()
             yield Ball()
@@ -117,6 +158,7 @@ class PongGame(App):
 
         # Score
         if ball.offset.x + ball.size.width < 0:
+            self.computer_points += 1
             await self.recompose()
 
         # Ball movement
