@@ -1,3 +1,5 @@
+import random
+
 from rich.segment import Segment
 from textual import events
 from textual.app import App, ComposeResult, RenderResult
@@ -28,7 +30,7 @@ class Computer(Widget):
         width: 2;
         height: 4;
         background: #FF004D;
-        offset: 38 9;
+        offset: 49 9;
     }
     """
 
@@ -40,23 +42,30 @@ class Ball(Widget):
     DEFAULT_CSS = """
     Ball {
         width: 2;
-        height: 1;
-        background: #FFF1E8;
-        offset: 19 11;
+        height: auto;
+        color: #FFF1E8;
+        offset: 25 11;
     }
     """
 
-    dx = 1
+    def __init__(self) -> None:
+        super().__init__()
+        self.x = 25.0
+        self.y = 11.0
+        self.dx = 1.0
+        self.dy = random.choice([-0.5, 0.5])
 
     def render(self) -> RenderResult:
-        return ""
+        if self.y.is_integer():
+            return "██"
+        return "▄▄\n▀▀"
 
 
 class Court(Container):
     DEFAULT_CSS = """
     Court {
         layout: horizontal;
-        width: 48;
+        width: 59;
         height: 25;
         border: wide #C2C3C7;
     }
@@ -65,7 +74,7 @@ class Court(Container):
     def render_line(self, y: int) -> Strip:
         if y % 2:
             return Strip.blank(self.size.width)
-        segments = [Segment(" " * (self.size.width // 2 - 1)), Segment("┃")]
+        segments = [Segment(" " * (self.size.width // 2)), Segment("┃")]
         return Strip(segments)
 
 
@@ -73,7 +82,7 @@ class Scoreboard(Container):
     DEFAULT_CSS = """
     Scoreboard {
         layout: horizontal;
-        width: 48;
+        width: 59;
         height: 1;
         padding: 0 1;
 
@@ -128,6 +137,9 @@ class PongGame(App):
     def on_mount(self) -> None:
         self.set_interval(1 / 30, self.update)
 
+    def on_key(self, event: events.Key) -> None:
+        self.key = event.key
+
     async def update(self) -> None:
         court = self.query_one(Court)
         player = self.query_one(Player)
@@ -143,8 +155,31 @@ class PongGame(App):
         ):
             player.offset += Offset(0, 1)
 
+        # Computer controls
+        computer_middle = computer.offset.y + (computer.size.height / 2)
+        if ball.dx > 0:
+            if computer_middle > ball.y and computer.offset.y > 0:
+                computer.offset -= Offset(0, 1)
+            elif (
+                computer_middle < ball.y
+                and (computer.offset.y + computer.size.height) < court.size.height
+            ):
+                computer.offset += Offset(0, 1)
+        elif ball.y.is_integer():
+            court_middle = court.size.height // 2
+            if computer_middle > court_middle:
+                computer.offset -= Offset(0, 1)
+            elif computer_middle < court_middle:
+                computer.offset += Offset(0, 1)
+
         # Collide with computer
-        if ball.dx > 0 and ball.offset.x >= computer.offset.x:
+        if (
+            ball.dx > 0
+            and ball.offset.x >= computer.offset.x
+            and ball.offset.y >= computer.offset.y
+            and (ball.offset.y + ball.size.height)
+            <= (computer.offset.y + computer.size.height)
+        ):
             ball.dx = -(ball.dx)
 
         # Collide with player
@@ -157,19 +192,25 @@ class PongGame(App):
         ):
             ball.dx = -(ball.dx)
 
+        # Collide with court
+        if ball.y <= 0 or ball.y >= court.size.height - 1:
+            ball.dy = -(ball.dy)
+
         # Score
         if ball.offset.x + ball.size.width < 0:
             self.computer_points += 1
             await self.recompose()
+        if ball.offset.x + ball.size.width > court.size.width - 2:
+            self.player_points += 1
+            await self.recompose()
 
         # Ball movement
-        ball.offset += Offset(ball.dx, 0)
+        ball.x += ball.dx
+        ball.y += ball.dy
+        ball.offset = Offset(int(ball.x), int(ball.y))
 
         # Reset the key
         self.key = None
-
-    def on_key(self, event: events.Key) -> None:
-        self.key = event.key
 
 
 if __name__ == "__main__":
