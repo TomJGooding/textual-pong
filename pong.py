@@ -128,7 +128,7 @@ class PongGame(App):
     computer_points = 0
 
     def compose(self) -> ComposeResult:
-        yield Scoreboard(self.player_points, self.computer_points)
+        # yield Scoreboard(self.player_points, self.computer_points)
         with Court():
             yield Player()
             yield Ball()
