@@ -157,13 +157,20 @@ class PongGame(App):
 
         # Computer controls
         computer_middle = computer.offset.y + (computer.size.height / 2)
-        if computer_middle > ball.y and computer.offset.y > 0:
-            computer.offset -= Offset(0, 1)
-        elif (
-            computer_middle < ball.y
-            and (computer.offset.y + computer.size.height) < court.size.height
-        ):
-            computer.offset += Offset(0, 1)
+        if ball.dx > 0:
+            if computer_middle > ball.y and computer.offset.y > 0:
+                computer.offset -= Offset(0, 1)
+            elif (
+                computer_middle < ball.y
+                and (computer.offset.y + computer.size.height) < court.size.height
+            ):
+                computer.offset += Offset(0, 1)
+        elif ball.y.is_integer():
+            court_middle = court.size.height // 2
+            if computer_middle > court_middle:
+                computer.offset -= Offset(0, 1)
+            elif computer_middle < court_middle:
+                computer.offset += Offset(0, 1)
 
         # Collide with computer
         if (
