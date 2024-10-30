@@ -1,3 +1,5 @@
+import random
+
 from rich.segment import Segment
 from textual import events
 from textual.app import App, ComposeResult, RenderResult
@@ -40,16 +42,23 @@ class Ball(Widget):
     DEFAULT_CSS = """
     Ball {
         width: 2;
-        height: 1;
-        background: #FFF1E8;
+        height: auto;
+        color: #FFF1E8;
         offset: 19 11;
     }
     """
 
-    dx = 1
+    def __init__(self) -> None:
+        super().__init__()
+        self.x = 19.0
+        self.y = 11.0
+        self.dx = 1.0
+        self.dy = random.choice([-0.5, 0.5])
 
     def render(self) -> RenderResult:
-        return ""
+        if self.y.is_integer():
+            return "██"
+        return "▄▄\n▀▀"
 
 
 class Court(Container):
@@ -163,6 +172,10 @@ class PongGame(App):
         ):
             ball.dx = -(ball.dx)
 
+        # Collide with court
+        if ball.y <= 0 or ball.y >= court.size.height - 1:
+            ball.dy = -(ball.dy)
+
         # Score
         if ball.offset.x + ball.size.width < 0:
             self.computer_points += 1
@@ -172,7 +185,9 @@ class PongGame(App):
             await self.recompose()
 
         # Ball movement
-        ball.offset += Offset(ball.dx, 0)
+        ball.x += ball.dx
+        ball.y += ball.dy
+        ball.offset = Offset(int(ball.x), int(ball.y))
 
         # Reset the key
         self.key = None
