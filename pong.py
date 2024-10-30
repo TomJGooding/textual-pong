@@ -137,6 +137,9 @@ class PongGame(App):
     def on_mount(self) -> None:
         self.set_interval(1 / 30, self.update)
 
+    def on_key(self, event: events.Key) -> None:
+        self.key = event.key
+
     async def update(self) -> None:
         court = self.query_one(Court)
         player = self.query_one(Player)
@@ -151,6 +154,16 @@ class PongGame(App):
             and (player.offset.y + player.size.height) < court.size.height
         ):
             player.offset += Offset(0, 1)
+
+        # Computer controls
+        computer_middle = computer.offset.y + (computer.size.height / 2)
+        if computer_middle > ball.y and computer.offset.y > 0:
+            computer.offset -= Offset(0, 1)
+        elif (
+            computer_middle < ball.y
+            and (computer.offset.y + computer.size.height) < court.size.height
+        ):
+            computer.offset += Offset(0, 1)
 
         # Collide with computer
         if (
@@ -191,9 +204,6 @@ class PongGame(App):
 
         # Reset the key
         self.key = None
-
-    def on_key(self, event: events.Key) -> None:
-        self.key = event.key
 
 
 if __name__ == "__main__":
