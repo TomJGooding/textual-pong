@@ -144,7 +144,13 @@ class PongGame(App):
             player.offset += Offset(0, 1)
 
         # Collide with computer
-        if ball.dx > 0 and ball.offset.x >= computer.offset.x:
+        if (
+            ball.dx > 0
+            and ball.offset.x >= computer.offset.x
+            and ball.offset.y >= computer.offset.y
+            and (ball.offset.y + ball.size.height)
+            <= (computer.offset.y + computer.size.height)
+        ):
             ball.dx = -(ball.dx)
 
         # Collide with player
@@ -160,6 +166,9 @@ class PongGame(App):
         # Score
         if ball.offset.x + ball.size.width < 0:
             self.computer_points += 1
+            await self.recompose()
+        if ball.offset.x + ball.size.width > court.size.width - 2:
+            self.player_points += 1
             await self.recompose()
 
         # Ball movement
