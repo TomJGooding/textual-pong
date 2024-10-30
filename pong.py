@@ -30,7 +30,7 @@ class Computer(Widget):
         width: 2;
         height: 4;
         background: #FF004D;
-        offset: 38 9;
+        offset: 49 9;
     }
     """
 
@@ -44,13 +44,13 @@ class Ball(Widget):
         width: 2;
         height: auto;
         color: #FFF1E8;
-        offset: 19 11;
+        offset: 25 11;
     }
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self.x = 19.0
+        self.x = 25.0
         self.y = 11.0
         self.dx = 1.0
         self.dy = random.choice([-0.5, 0.5])
@@ -65,7 +65,7 @@ class Court(Container):
     DEFAULT_CSS = """
     Court {
         layout: horizontal;
-        width: 48;
+        width: 59;
         height: 25;
         border: wide #C2C3C7;
     }
@@ -74,7 +74,7 @@ class Court(Container):
     def render_line(self, y: int) -> Strip:
         if y % 2:
             return Strip.blank(self.size.width)
-        segments = [Segment(" " * (self.size.width // 2 - 1)), Segment("┃")]
+        segments = [Segment(" " * (self.size.width // 2)), Segment("┃")]
         return Strip(segments)
 
 
@@ -82,7 +82,7 @@ class Scoreboard(Container):
     DEFAULT_CSS = """
     Scoreboard {
         layout: horizontal;
-        width: 48;
+        width: 59;
         height: 1;
         padding: 0 1;
 
